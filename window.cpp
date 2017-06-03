@@ -85,6 +85,7 @@ void phaseSpace::createInput(){
 }
 
 void phaseSpace::updateChart(){
+		goButton->setEnabled(false);
     int N = Ninput->text().toInt();
     float L = Linput->text().toFloat();
     int J = Jinput->text().toInt();
@@ -96,7 +97,7 @@ void phaseSpace::updateChart(){
         return;
 
     static int flag = 0;
-    if(flag = 1){
+    if(flag == 1){
         delete phaseSeries;
     }
     flag = 1;
@@ -106,6 +107,9 @@ void phaseSpace::updateChart(){
 	worker->moveToThread(thread);
 	connect(thread, SIGNAL(started()), worker, SLOT(passEval()));
 	connect(worker, SIGNAL(returnVector(VectorXf)), this, SLOT(processVector(VectorXf)));
+	connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+	connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+	connect(worker, SIGNAL(finished()), thread, SLOT(deleteLater()));
 	thread->start();	
 }
 
@@ -128,6 +132,7 @@ void phaseSpace::processVector(VectorXf y){
 //    phaseSeries->attachAxis(axisX);
 //    phaseSeries->attachAxis(axisY);
     phaseChart->createDefaultAxes();
+	goButton->setEnabled(true);
 }
 worker::worker(float tmax, float dt, int N, int J, float L, float vb)
 		: tmax(tmax), dt(dt), N(N), J(J), L(L), vb(vb) {}
@@ -139,4 +144,5 @@ void worker::passEval(){
 	VectorXf y(2*N);
     y = plasma.eval(tmax, dt);
 	emit returnVector(y);
+	emit finished();
 }

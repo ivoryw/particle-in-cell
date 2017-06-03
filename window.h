@@ -51,6 +51,7 @@ class worker : public QObject{
 				void passEval();
 		signals:
 				void returnVector(VectorXf y);	
+				void finished();
 		private:
 				int N, K, J;
 				float tmax, dt, L, vb;	
