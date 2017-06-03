@@ -7,13 +7,12 @@
 #include <cmath>
 
 #include <QDebug>
-
 using namespace Eigen;
 
 class plasma{
 public:
     explicit plasma(float l, int j, int n);
-    VectorXf eval(float tmax, float dt);
+	VectorXf eval(float tmax, float dt);
     void vDist(float vb);
     void rDist();
     void setN(int l);

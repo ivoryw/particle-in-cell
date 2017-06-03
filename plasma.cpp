@@ -109,7 +109,10 @@ void plasma::function(float t, VectorXf y, VectorXf& dydt){
 
 	n0 = float(N)/L;
 	kappa = 2 * PI / L;
-	rho = n / (n0 - 1);
+    rho = n / n0;
+    for(int i=0; i<J;i++){
+        rho(i) -= 1;
+    }
 
 	poisson1d(rho, phi, kappa);
 

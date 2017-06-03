@@ -3,6 +3,7 @@
 
 window::window(QWidget *parent):
     QWidget(parent){
+	qRegisterMetaType<VectorXf>("VectorXf");
     setWindowTitle("Plasma");
     mainLayout = new QHBoxLayout();
     mainLayout->addWidget(new phaseSpace());
@@ -95,24 +96,29 @@ void phaseSpace::updateChart(){
         return;
 
     static int flag = 0;
-    if(flag != 0){
+    if(flag = 1){
         delete phaseSeries;
     }
     flag = 1;
+	
+	auto thread = new QThread;
+	auto worker = new class worker(tmax, dt, N, J, L, vb);
+	worker->moveToThread(thread);
+	connect(thread, SIGNAL(started()), worker, SLOT(passEval()));
+	connect(worker, SIGNAL(returnVector(VectorXf)), this, SLOT(processVector(VectorXf)));
+	thread->start();	
+}
+
+void phaseSpace::processVector(VectorXf y){
+		int N = y.size()/2;
+	VectorXf v(N), r(N);
+    v = y.tail(N);
+    r = y.head(N);
+
     phaseSeries = new QScatterSeries;
     phaseSeries->setUseOpenGL(true);
     phaseSeries->setColor(QColor("black"));
     phaseSeries->setMarkerSize(2);
-
-    VectorXf y(2*N), r(N), v(N);
-
-    plasma plasma(L,J,N);
-    plasma.rDist();
-    plasma.vDist(vb);
-    y = plasma.eval(tmax, dt);
-
-    v = y.tail(N);
-    r = y.head(N);
 
     for(int i = 0; i < N; i++){
         phaseSeries->append(r(i), v(i));
@@ -122,4 +128,15 @@ void phaseSpace::updateChart(){
 //    phaseSeries->attachAxis(axisX);
 //    phaseSeries->attachAxis(axisY);
     phaseChart->createDefaultAxes();
+}
+worker::worker(float tmax, float dt, int N, int J, float L, float vb)
+		: tmax(tmax), dt(dt), N(N), J(J), L(L), vb(vb) {}
+
+void worker::passEval(){
+    plasma plasma(L,J,N);
+    plasma.rDist();
+    plasma.vDist(vb);
+	VectorXf y(2*N);
+    y = plasma.eval(tmax, dt);
+	emit returnVector(y);
 }

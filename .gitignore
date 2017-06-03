@@ -2,3 +2,7 @@
 *.stash
 *.app
 *.user
+*.o
+moc*
+*.swp
+Makefile
