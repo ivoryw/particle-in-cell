@@ -12,10 +12,7 @@ QT += \
     widgets \
     charts
 
-INCLUDEPATH += \
-    /opt/local/include
 
 LIBS += \
-    -L /opt/local/lib \
     -lfftw3 \
     -lm
